@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{{ collection.name }} · LinkVault{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-folder-fill text-warning"></i> {{ collection.name }}</h3>
+        <p class="text-muted">{{ collection.description }}</p>
+    </div>
+    <a href="{% url 'collection_list' %}" class="btn btn-link">Geri</a>
+</div>
+
+{% if collection.bookmarks.all %}
+<div class="list-group">
+    {% for b in collection.bookmarks.all %}
+    <a href="{% url 'bookmark_detail' b.pk %}" class="list-group-item list-group-item-action">
+        <div class="d-flex justify-content-between">
+            <span><strong>{{ b.title }}</strong> <span class="text-muted small">{{ b.url }}</span></span>
+            {% if b.is_favorite %}<i class="bi bi-star-fill text-warning"></i>{% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state"><p>Bu koleksiyonda henüz bookmark yok.</p></div>
+{% endif %}
+{% endblock %}

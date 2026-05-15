@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ bookmark.title }} · LinkVault{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h3>{{ bookmark.title }}</h3>
+                    {% if bookmark.is_favorite %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Favori</span>
+                    {% endif %}
+                </div>
+                <a href="{{ bookmark.url }}" target="_blank" class="d-block mb-3">{{ bookmark.url }}</a>
+
+                {% if bookmark.description %}
+                <p>{{ bookmark.description }}</p>
+                {% endif %}
+
+                <div class="mb-3">
+                    {% for tag in bookmark.tags.all %}
+                    <span class="badge bg-secondary">{{ tag.name }}</span>
+                    {% empty %}
+                    <span class="text-muted small">Etiket yok</span>
+                    {% endfor %}
+                </div>
+
+                <ul class="list-unstyled small text-muted">
+                    {% if bookmark.collection %}
+                    <li><i class="bi bi-folder"></i> Koleksiyon: {{ bookmark.collection.name }}</li>
+                    {% endif %}
+                    <li><i class="bi bi-globe"></i> Görünürlük:
+                        {% if bookmark.is_public %}Herkese açık{% else %}Özel{% endif %}</li>
+                    <li><i class="bi bi-clock"></i> Eklenme: {{ bookmark.created_at|date:"d M Y, H:i" }}</li>
+                </ul>
+            </div>
+            {% if bookmark.owner == user %}
+            <div class="card-footer bg-white">
+                <a href="{% url 'bookmark_update' bookmark.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil"></i> Düzenle
+                </a>
+                <a href="{% url 'bookmark_delete' bookmark.pk %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Sil
+                </a>
+                <a href="{% url 'bookmark_list' %}" class="btn btn-link">Geri</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

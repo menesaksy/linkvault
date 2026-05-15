@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Bookmark'larım · LinkVault{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Bookmark'larım</h3>
+    <a href="{% url 'bookmark_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Yeni Bookmark
+    </a>
+</div>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Başlık, açıklama veya etikette ara...">
+    </div>
+    <div class="col-md-3">
+        <select name="collection" class="form-select">
+            <option value="">Tüm koleksiyonlar</option>
+            {% for c in collections %}
+            <option value="{{ c.id }}" {% if active_collection == c.id|stringformat:"s" %}selected{% endif %}>
+                {{ c.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="favorites" class="form-select">
+            <option value="">Hepsi</option>
+            <option value="1" {% if favorites_only %}selected{% endif %}>Sadece favoriler</option>
+        </select>
+    </div>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-outline-secondary">
+            <i class="bi bi-search"></i> Filtrele
+        </button>
+    </div>
+</form>
+
+{% if bookmarks %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+    {% for bookmark in bookmarks %}
+    <div class="col">
+        <div class="card bookmark-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">
+                        <a href="{% url 'bookmark_detail' bookmark.pk %}" class="text-decoration-none">
+                            {{ bookmark.title }}
+                        </a>
+                    </h5>
+                    <span class="favorite-icon" data-id="{{ bookmark.id }}">
+                        {% if bookmark.is_favorite %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                        {% endif %}
+                    </span>
+                </div>
+                <p class="card-text text-muted small text-truncate">{{ bookmark.url }}</p>
+                {% if bookmark.description %}
+                <p class="card-text small">{{ bookmark.description|truncatewords:15 }}</p>
+                {% endif %}
+                <div class="mb-2">
+                    {% for tag in bookmark.tags.all %}
+                    <span class="badge bg-secondary tag-badge">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% if bookmark.collection %}
+                <span class="badge bg-light text-dark border">
+                    <i class="bi bi-folder"></i> {{ bookmark.collection.name }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-between">
+                <a href="{{ bookmark.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-box-arrow-up-right"></i> Aç
+                </a>
+                <div>
+                    <a href="{% url 'bookmark_update' bookmark.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'bookmark_delete' bookmark.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}">Önceki</a>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-bookmark-x" style="font-size: 3rem;"></i>
+    <p class="mt-3">Henüz bookmark yok. İlk linkini ekle!</p>
+    <a href="{% url 'bookmark_create' %}" class="btn btn-primary">Bookmark Ekle</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Favori toggle - AJAX (Adım 5'te endpoint'i yazacağız)
+document.querySelectorAll('.favorite-icon').forEach(function (el) {
+    el.addEventListener('click', function () {
+        const id = this.dataset.id;
+        fetch(`/bookmark/${id}/toggle-favorite/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        })
+        .then(r => r.json())
+        .then(data => {
+            const icon = el.querySelector('i');
+            if (data.is_favorite) {
+                icon.className = 'bi bi-star-fill text-warning';
+            } else {
+                icon.className = 'bi bi-star text-muted';
+            }
+        });
+    });
+});
+
+function getCookie(name) {
+    let value = null;
+    document.cookie.split(';').forEach(function (c) {
+        c = c.trim();
+        if (c.startsWith(name + '=')) {
+            value = decodeURIComponent(c.substring(name.length + 1));
+        }
+    });
+    return value;
+}
+</script>
+{% endblock %}

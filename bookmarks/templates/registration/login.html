@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Giriş · LinkVault{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="mb-3">Giriş Yap</h4>
+                {% if form.errors %}
+                <div class="alert alert-danger">Kullanıcı adı veya şifre hatalı.</div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        <input type="{% if 'password' in field.name %}password{% else %}text{% endif %}"
+                               name="{{ field.name }}" class="form-control" required>
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                </form>
+                <p class="text-center mt-3 small">
+                    Hesabın yok mu? <a href="{% url 'signup' %}">Kayıt ol</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
